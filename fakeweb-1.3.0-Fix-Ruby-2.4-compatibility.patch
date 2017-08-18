@@ -1,0 +1,27 @@
+From efa3d561570b7fb9b7e8eaa38a71c85ed8043472 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?V=C3=ADt=20Ondruch?= <vondruch@redhat.com>
+Date: Thu, 19 Jan 2017 16:04:15 +0100
+Subject: [PATCH] Since Ruby 2.2, it is safe to call #close on closed socket.
+
+The #closed? checks were removed by r56865.
+---
+ lib/fake_web/stub_socket.rb | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/fake_web/stub_socket.rb b/lib/fake_web/stub_socket.rb
+index 4d23f7e..a2f3af1 100644
+--- a/lib/fake_web/stub_socket.rb
++++ b/lib/fake_web/stub_socket.rb
+@@ -12,6 +12,9 @@ module FakeWeb
+       @closed ||= true
+     end
+ 
++    def close
++    end
++
+     def readuntil(*args)
+     end
+ 
+-- 
+2.11.0
+

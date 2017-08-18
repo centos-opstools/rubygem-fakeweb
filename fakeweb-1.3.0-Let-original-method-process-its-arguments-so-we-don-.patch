@@ -1,0 +1,50 @@
+From 93d5476fa34ffe4ecb37c1d18ffdf623b058bdb3 Mon Sep 17 00:00:00 2001
+From: Chris Kampmeier <chris@kampers.net>
+Date: Sun, 1 Dec 2013 02:34:36 -0800
+Subject: [PATCH] Let original method process its arguments so we don't have to
+ keep up with changes
+
+For example, there's now a @continue_timeout that we haven't been setting.
+---
+ lib/fake_web/ext/net_http.rb | 20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
+
+diff --git a/lib/fake_web/ext/net_http.rb b/lib/fake_web/ext/net_http.rb
+index 56a991e..fa00b17 100644
+--- a/lib/fake_web/ext/net_http.rb
++++ b/lib/fake_web/ext/net_http.rb
+@@ -5,22 +5,21 @@ require 'stringio'
+ module Net  #:nodoc: all
+ 
+   class BufferedIO
+-    def initialize_with_fakeweb(io, debug_output = nil)
+-      @read_timeout = 60
+-      @rbuf = ''
+-      @debug_output = debug_output
++    def initialize_with_fakeweb(*args)
++      initialize_without_fakeweb(*args)
+ 
+-      @io = case io
++      case @io
+       when Socket, OpenSSL::SSL::SSLSocket, IO
+-        io
++        # usable as-is
+       when String
+-        if !io.include?("\0") && File.exists?(io) && !File.directory?(io)
+-          File.open(io, "r")
++        if !@io.include?("\0") && File.exist?(@io) && !File.directory?(@io)
++          @io = File.open(@io, "r")
+         else
+-          StringIO.new(io)
++          @io = StringIO.new(@io)
+         end
++      else
++        raise "Unable to create fake socket from #{io}"
+       end
+-      raise "Unable to create local socket" unless @io
+     end
+     alias_method :initialize_without_fakeweb, :initialize
+     alias_method :initialize, :initialize_with_fakeweb
+-- 
+2.11.0
+

@@ -1,0 +1,29 @@
+From 6f93cb047928fca0808aa62a798e31ce8264f2de Mon Sep 17 00:00:00 2001
+From: Jun Aruga <jaruga@redhat.com>
+Date: Wed, 13 Apr 2016 12:52:48 +0200
+Subject: [PATCH] Fix FTBFS sue to Ruby 2.3
+
+---
+ test/test_helper.rb | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/test/test_helper.rb b/test/test_helper.rb
+index baaa249..4da5a47 100644
+--- a/test/test_helper.rb
++++ b/test/test_helper.rb
+@@ -53,7 +53,11 @@ module FakeWebTestHelper
+       OpenSSL::SSL::SSLSocket.expects(:===).with(socket).returns(true).at_least_once
+       OpenSSL::SSL::SSLSocket.expects(:new).with(socket, instance_of(OpenSSL::SSL::SSLContext)).returns(socket).at_least_once
+       socket.stubs(:sync_close=).returns(true)
+-      socket.expects(:connect).with().at_least_once
++      if RUBY_VERSION >= "2.3.0"
++        socket.expects(:connect_nonblock).with(:exception => false).at_least_once
++      else
++        socket.expects(:connect).with().at_least_once
++      end
+       socket.expects(:session).with().at_least_once if RUBY_VERSION >= "2.0.0"
+     else
+       socket = mock("TCPSocket")
+-- 
+2.5.5
+
